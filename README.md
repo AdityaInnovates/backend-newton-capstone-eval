@@ -32,8 +32,8 @@ A backend system designed to manage and evaluate capstone projects for Newton Sc
 ## Contact
 
 - Project Maintainer:
-  - [Aditya](https://github.com/adityaInnovates)
-  - [ved](https://github.com/vedpawar2254)
+  - [Aditya Kumar](https://github.com/adityaInnovates)
+  - [Ved Pawar](https://github.com/vedpawar2254)
 
 ## Acknowledgments
 
