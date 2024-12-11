@@ -25,10 +25,6 @@ A backend system designed to manage and evaluate capstone projects for Newton Sc
 
 1. Clone the repository
 
-## License
-
-[MIT License](LICENSE)
-
 ## Contact
 
 - Project Maintainer:
