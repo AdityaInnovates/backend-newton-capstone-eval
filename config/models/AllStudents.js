@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
     report: {
-      type: String,
+      type: Object,
       required: true,
       trim: true,
     },
