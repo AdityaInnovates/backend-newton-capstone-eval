@@ -7,6 +7,11 @@ const userSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    mentor: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     name: {
       type: String,
       required: true,
@@ -43,7 +48,7 @@ const userSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, // Automatically adds createdAt and updatedAt fields
+    timestamps: true,
   }
 );
 
