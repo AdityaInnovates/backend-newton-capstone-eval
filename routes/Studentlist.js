@@ -1,8 +1,8 @@
 const express = require("express");
 
-const { fetchStudentlist } = require("../controllers/Studentlist");
+const { fetchStudentlist,addStudentlist } = require("../controllers/Studentlist");
 
-const { addStudentlist } = require("../controllers/Studentlist");
+
 
 // const {updateStudentlist} = require('../controllers/Studentlist')
 
