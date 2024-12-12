@@ -6,5 +6,8 @@ const authschema = mongoose.Schema({
   totalTries: {
     type: Object,
   },
+  time: {
+    type: Number,
+  },
 });
 module.exports = mongoose.model("secindstepauth", authschema);

@@ -4,6 +4,8 @@ const nodemailer = require("nodemailer");
 const express = require("express");
 const secondStepModel = require("../config/models/secondStepModel");
 const router = express.Router();
+const jwt = require("jsonwebtoken");
+const User = require("../config/models/userModel");
 const sendEmail = async (body) => {
   const { to } = body;
   if (!to) {
@@ -12,6 +14,7 @@ const sendEmail = async (body) => {
       msg: "No recipients defined",
     };
   }
+
   var email = to;
   var fourdigitotp = Math.floor(1000 + Math.random() * 9000);
   var data = await secondStepModel.findOne({ email });
@@ -20,9 +23,10 @@ const sendEmail = async (body) => {
       email,
       otp: fourdigitotp,
       totalTries: { tries: 1, date: new Date().toDateString() },
+      time: Number(new Date()),
     });
     await tosave.save();
-    var emailsent = await sendForgetPassMail({ to, otp: fourdigitotp, email });
+    var emailsent = await sendOTPPassMail({ to, otp: fourdigitotp, email });
     if (emailsent) {
       return {
         success: true,
@@ -39,7 +43,7 @@ const sendEmail = async (body) => {
     if (data.totalTries.date == new Date().toDateString()) {
       return {
         success: false,
-        msg: "Max Tries Limit Reached. Try Tommorow",
+        msg: "Max Tries Limit Reached. Try Tomorrow",
       };
     } else {
       await secondStepModel.findOneAndUpdate(
@@ -47,10 +51,11 @@ const sendEmail = async (body) => {
         {
           "totalTries.tries": 1,
           "totalTries.date": new Date().toDateString(),
+          time: Number(new Date()),
         }
       );
 
-      var emailsent = await sendForgetPassMail({ to, email });
+      var emailsent = await sendOTPPassMail({ to, email });
       if (emailsent) {
         return {
           success: true,
@@ -73,6 +78,7 @@ const sendEmail = async (body) => {
         {
           "totalTries.tries": 1,
           "totalTries.date": new Date().toDateString(),
+          time: Number(new Date()),
         }
       );
     } else {
@@ -83,10 +89,11 @@ const sendEmail = async (body) => {
             "totalTries.tries": 1,
           },
           "totalTries.date": new Date().toDateString(),
+          time: Number(new Date()),
         }
       );
     }
-    var emailsent = await sendForgetPassMail({ to, email });
+    var emailsent = await sendOTPPassMail({ to, email });
     if (emailsent) {
       return {
         success: true,
@@ -101,10 +108,82 @@ const sendEmail = async (body) => {
   }
   // Create a transporter with Gmail SMTP credentials
 };
-router.post("/", async (req, res) => {
+router.post("/otp", async (req, res) => {
   return res.send(await sendEmail(req.body));
 });
+router.post("/forgetPass", async (req, res) => {
+  var body = req.body;
+  if (!body.to) {
+    return res.send({ status: false, msg: "Please add a recipient." });
+  }
+  var dbres = await User.findOne({ email: body.to });
+  if (!dbres) {
+    return res.send({ status: false, msg: "User not found" });
+  }
+  // Add 10 minute expiration to JWT
+  const token = jwt.sign({ _id: dbres._id }, process.env.SECRET_KEY, {
+    expiresIn: "10m",
+  });
+
+  return res.send(
+    await sendForgetPassMail(
+      {
+        to: body.to,
+        host:
+          process.env.forgetPasswordHostedLink + "?token=" + token ||
+          "https://localhost:6969/?token=" + token,
+      } // Pass token to email function
+    )
+  );
+});
 async function sendForgetPassMail(newbody) {
+  var { to, host } = newbody;
+  var email = to;
+  var otp = newbody?.otp || Math.floor(1000 + Math.random() * 9000);
+  await secondStepModel.findOneAndUpdate({ email }, { otp });
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "kradityanormal5@gmail.com", // Your Gmail email address
+      pass: process.env.emailpass, // Your Gmail password or App Password
+    },
+  });
+
+  // Email message options
+  const mailOptions = {
+    from: "Forget password for capstone project <kradityanormal5@gmail.com>", // Sender address
+    to,
+    subject: "Forget password for capstone project",
+    text: `${otp}`,
+    html: `<div style="font-family: Helvetica,Arial,sans-serif;min-width:1000px;overflow:auto;line-height:2">
+  <div style="margin:50px auto;width:70%;padding:20px 0">
+    <div style="border-bottom:1px solid #eee">
+      <a href="" style="font-size:1.4em;color: #00466a;text-decoration:none;font-weight:600">NST x RU</a>
+    </div>
+    <p style="font-size:1.1em">Hi, ${email.split("@")[0].replace(" ")}</p>
+    <p>Thank you for choosing Newton School. Use the following Link to Update your Password.</p>
+    <a href='${host}' style="background: #00466a;text-decoration:none;margin: 0 auto;width: max-content;padding: 4px 10px;color: #fff;border-radius: 4px;">Update Password</a>
+    <p style="font-size:0.9em;">Regards,<br />Newton school Team</p>
+    <hr style="border:none;border-top:1px solid #eee" />
+    <div style="float:right;padding:8px 0;color:#aaa;font-size:0.8em;line-height:1;font-weight:300">
+      <p>Newton School Of Technology</p>
+      <p>Sonipat</p>
+      <p>Delhi NCR</p>
+    </div>
+  </div>
+</div>`,
+  };
+
+  try {
+    // Send email
+    await transporter.sendMail(mailOptions);
+    return { status: true, msg: "Email sent!" };
+  } catch (error) {
+    console.log("Error sending email:", error);
+    return { status: false, msg: "Error sending email" };
+  }
+}
+async function sendOTPPassMail(newbody) {
   var { to, email } = newbody;
   var otp = newbody?.otp || Math.floor(1000 + Math.random() * 9000);
   await secondStepModel.findOneAndUpdate({ email }, { otp });
@@ -127,11 +206,7 @@ async function sendForgetPassMail(newbody) {
     <div style="border-bottom:1px solid #eee">
       <a href="" style="font-size:1.4em;color: #00466a;text-decoration:none;font-weight:600">NST x RU</a>
     </div>
-    <p style="font-size:1.1em">Hi, ${
-      email.split("@")[0].includes(".")
-        ? email.split("@")[0].replace(" ")
-        : email.split("@")[0]
-    }</p>
+    <p style="font-size:1.1em">Hi, ${email.split("@")[0].replace(" ")}</p>
     <p>Thank you for choosing Newton School. Use the following OTP to complete your Sign Up procedures. OTP is valid for 5 minutes</p>
     <h2 style="background: #00466a;margin: 0 auto;width: max-content;padding: 0 10px;color: #fff;border-radius: 4px;">${otp}</h2>
     <p style="font-size:0.9em;">Regards,<br />Newton school Team</p>
