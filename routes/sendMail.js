@@ -7,6 +7,12 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 const User = require("../config/models/userModel");
 const AllStudents = require("../config/models/AllStudents");
+const fs = require("fs");
+const path = require("path");
+var htmlTemplate = fs.readFileSync(
+  path.join(__dirname, "../config/StudentEvaluation.html"),
+  "utf-8"
+);
 const max_tries = 10;
 
 const sendEmail = async (body) => {
@@ -302,14 +308,14 @@ async function sendReport(newbody) {
     },
     0
   );
-  console.log([
-    { title: "HTML", value: HTML },
-    { title: "CSS", value: CSS },
-    { title: "RESPONSIVE", value: RESPONSIVE },
-    { title: "OPTIMIZATION", value: OPTIMIZATION },
-    { title: "TESTING", value: TESTING },
-    { title: "TOTAL", value: student.report.total },
-  ]);
+  // console.log([
+  //   { title: "HTML", value: HTML },
+  //   { title: "CSS", value: CSS },
+  //   { title: "RESPONSIVE", value: RESPONSIVE },
+  //   { title: "OPTIMIZATION", value: OPTIMIZATION },
+  //   { title: "TESTING", value: TESTING },
+  //   { title: "TOTAL", value: student.report.total },
+  // ]);
   //   var VISUALDESIGN = student.report.evaluation;
   //   var TESTING = student.report.evaluation;
   const transporter = nodemailer.createTransport({
@@ -320,18 +326,18 @@ async function sendReport(newbody) {
     },
   });
   htmlTemplate = htmlTemplate
-    .replace("John Doe", student.name)
+    .replace("{StudentName}", student.name)
     .replace("johndoe@example.com", to)
-    .replace("Vishal Sharma", student.mentor)
+    .replace("{MentorName}", student.mentor)
     // Update scores
     .replace("{HTMLSCORE}", `${HTML}`)
     .replace("{CSSSCORE}", `${CSS}`)
     .replace("{Responsiveness&MobileOptimizationLSCORE}", `${RESPONSIVE}`)
     .replace("{Visual&FunctionalDesignSCORE}", `${OPTIMIZATION}`)
     .replace("{Testing&DebuggingSCORE}", `${TESTING}`)
-    .replace("{TOTALSCORE}", `${totalScore}`)
+    .replace("{TOTALSCORE}", `${student.report?.total}`)
     // Update feedback
-    .replace(/Lorem ipsum dolor.*?<\/p>/s, `${student.feedback}</p>`);
+    .replace("{FeedbackInputOfStudent}", `${student.feedback}</p>`);
   // Email message options
   const mailOptions = {
     from: "Your S&W capstone project evalutation report <kradityanormal5@gmail.com>", // Sender address
@@ -344,10 +350,9 @@ async function sendReport(newbody) {
   try {
     // Send email
     await transporter.sendMail(mailOptions);
-    return true;
+    return { status: true, msg: "Email send sucessfully" };
   } catch (error) {
-    console.log("Error sending email:", error);
-    return false;
+    return { status: false, msg: "Failed to send Email" };
   }
 }
 
