@@ -228,8 +228,8 @@ async function sendOTPPassMail(newbody) {
   }
 }
 async function sendReport(newbody) {
-  var { to, email,student } = newbody;
-  var 
+  var { to, email, student } = newbody;
+  //   var restucture = student.evaluation.
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -238,22 +238,19 @@ async function sendReport(newbody) {
     },
   });
   htmlTemplate = htmlTemplate
-  .replace('John Doe', studentName)
-  .replace('johndoe@example.com', to)
-  .replace('Vishal Sharma', mentorName)
-  // Update scores
-  .replace('>15<', `>${scores.htmlStructure}<`)
-  .replace('>10<', `>${scores.cssDesign}<`)
-  .replace('>5<', `>${scores.responsiveness}<`)
-  .replace('>9<', `>${scores.optimization}<`)
-  .replace('>5<', `>${scores.visualDesign}<`)
-  .replace('>1<', `>${scores.testing}<`)
-  .replace('>45<', `>${totalScore}<`)
-  // Update feedback
-  .replace(
-    /Lorem ipsum dolor.*?<\/p>/s,
-    `${feedback}</p>`
-  );
+    .replace("John Doe", studentName)
+    .replace("johndoe@example.com", to)
+    .replace("Vishal Sharma", mentorName)
+    // Update scores
+    .replace(">15<", `>${scores.htmlStructure}<`)
+    .replace(">10<", `>${scores.cssDesign}<`)
+    .replace(">5<", `>${scores.responsiveness}<`)
+    .replace(">9<", `>${scores.optimization}<`)
+    .replace(">5<", `>${scores.visualDesign}<`)
+    .replace(">1<", `>${scores.testing}<`)
+    .replace(">45<", `>${totalScore}<`)
+    // Update feedback
+    .replace(/Lorem ipsum dolor.*?<\/p>/s, `${feedback}</p>`);
   // Email message options
   const mailOptions = {
     from: "Your S&W capstone project evalutation report <kradityanormal5@gmail.com>", // Sender address
