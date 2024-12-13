@@ -23,9 +23,7 @@ const sendEmail = async (body) => {
   });
 
   if (user) {
-    return res
-      .status(400)
-      .json({ status: false, message: "User Already Exist" });
+    return { status: false, message: "User Already Exist" };
   }
   var fourdigitotp = Math.floor(1000 + Math.random() * 9000);
   var data = await secondStepModel.findOne({ email });
@@ -237,8 +235,8 @@ async function sendOTPPassMail(newbody) {
   }
 }
 async function sendReport(newbody) {
-  var { to, email, student } = newbody;
-  //   var restucture = student.evaluation.
+  var { to, student } = newbody;
+  var restucture = student.report.evaluation;
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -247,9 +245,9 @@ async function sendReport(newbody) {
     },
   });
   htmlTemplate = htmlTemplate
-    .replace("John Doe", studentName)
+    .replace("John Doe", student.name)
     .replace("johndoe@example.com", to)
-    .replace("Vishal Sharma", mentorName)
+    .replace("Vishal Sharma", student.mentor)
     // Update scores
     .replace(">15<", `>${scores.htmlStructure}<`)
     .replace(">10<", `>${scores.cssDesign}<`)
