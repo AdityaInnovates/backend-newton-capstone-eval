@@ -40,18 +40,18 @@ module.exports = {
         ? await Query.findOne({ _id: req.query.id })
         : await Query.find({});
       if (!query) {
-        return res.status(500).send({ status: true, msg: [] });
+        return res.send({ status: true, msg: [] });
       }
-      return res.status(200).send({ status: true, msg: query });
+      return res.send({ status: true, msg: query });
     } catch (err) {
-      return res.status(500).send("Error getting Query");
+      return res.send("Error getting Query");
     }
   },
 
   postQuery: async (req, res) => {
     const { query } = req.body;
     if (!query) {
-      return res.status(400).send("Query is required");
+      return res.send("Query is required");
     }
     const Query = require("../config/models/studentFeedback");
     try {
