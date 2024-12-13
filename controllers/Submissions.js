@@ -1,4 +1,5 @@
 const User = require("../config/models/AllStudents");
+const userModel = require("../config/models/userModel");
 
 module.exports = {
   getReport: async (req, res) => {
@@ -18,25 +19,18 @@ module.exports = {
     }
   },
   postReport: async (req, res) => {
-    const { email } = req.params;
+    // const { email } = req.params;
+    var user = await userModel.findById(req.userId);
     const { responseSheet } = req.body;
     if (!responseSheet) {
       return res
         .status(400)
-        .send({ status: false, message: "Github Repo are required" });
+        .send({ status: false, message: "Inputs are required" });
     }
+    var tosave = new User({ ...user, mentor: user.mentorName });
     try {
-      const user = await User.findOneAndUpdate(
-        { email },
-        { report: responseSheet },
-        { new: true }
-      );
-      if (!user) {
-        return res
-          .status(404)
-          .send({ status: false, message: "User not found" });
-      }
-      res
+      await tosave.save();
+      return res
         .status(200)
         .send({ status: false, message: "Report submitted successfully" });
     } catch (error) {

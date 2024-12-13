@@ -323,12 +323,12 @@ async function sendReport(newbody) {
     .replace("johndoe@example.com", to)
     .replace("Vishal Sharma", student.mentor)
     // Update scores
-    .replace("{HTMLSCORE}", `>${HTML}<`)
-    .replace("{CSSSCORE}", `>${CSS}<`)
-    .replace("{Responsiveness&MobileOptimizationLSCORE}", `>${RESPONSIVE}<`)
-    .replace("{Visual&FunctionalDesignSCORE}", `>${OPTIMIZATION}<`)
-    .replace("{Testing&DebuggingSCORE}", `>${TESTING}<`)
-    .replace("{TOTALSCORE}", `>${totalScore}<`)
+    .replace("{HTMLSCORE}", `${HTML}`)
+    .replace("{CSSSCORE}", `${CSS}`)
+    .replace("{Responsiveness&MobileOptimizationLSCORE}", `${RESPONSIVE}`)
+    .replace("{Visual&FunctionalDesignSCORE}", `${OPTIMIZATION}`)
+    .replace("{Testing&DebuggingSCORE}", `${TESTING}`)
+    .replace("{TOTALSCORE}", `${totalScore}`)
     // Update feedback
     .replace(/Lorem ipsum dolor.*?<\/p>/s, `${student.feedback}</p>`);
   // Email message options
