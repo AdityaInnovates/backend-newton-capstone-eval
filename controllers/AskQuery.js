@@ -33,7 +33,9 @@ module.exports = {
     const Query = require("../config/models/studentFeedback");
     try {
       const query = req.query?.mentor
-        ? await Query.findOne({ mentor: req.query.mentor })
+        ? await Query.findOne({
+            mentor: { $regex: new RegExp(`^${req.query.mentor}$`, "i") },
+          })
         : req.query?.id
         ? await Query.findOne({ _id: req.query.id })
         : await Query.find({});
