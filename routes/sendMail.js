@@ -18,6 +18,15 @@ const sendEmail = async (body) => {
   }
 
   var email = to;
+  const user = await User.findOne({
+    email: { $regex: new RegExp(`^${email}$`, "i") },
+  });
+
+  if (user) {
+    return res
+      .status(400)
+      .json({ status: false, message: "User Already Exist" });
+  }
   var fourdigitotp = Math.floor(1000 + Math.random() * 9000);
   var data = await secondStepModel.findOne({ email });
   if (!data) {
