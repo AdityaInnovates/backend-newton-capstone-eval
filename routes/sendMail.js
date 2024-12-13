@@ -6,6 +6,7 @@ const secondStepModel = require("../config/models/secondStepModel");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 const User = require("../config/models/userModel");
+const AllStudents = require("../config/models/AllStudents");
 const max_tries = 10;
 
 const sendEmail = async (body) => {
@@ -143,6 +144,23 @@ router.post("/forgetPass", async (req, res) => {
     })
   );
 });
+router.post("/sendReport", async (req, res) => {
+  var body = req.body;
+  if (!body.to) {
+    return res.send({ status: false, msg: "Please add a recipient." });
+  }
+  var dbres = await AllStudents.findOne({ email: body.to });
+  if (!dbres) {
+    return res.send({ status: false, msg: "User not found" });
+  }
+
+  return res.send(
+    await sendReport({
+      to: body.to,
+      student: dbres,
+    })
+  );
+});
 async function sendForgetPassMail(newbody) {
   var { to, host } = newbody;
   var email = to;
@@ -236,7 +254,63 @@ async function sendOTPPassMail(newbody) {
 }
 async function sendReport(newbody) {
   var { to, student } = newbody;
-  var restucture = student.report.evaluation;
+  //   console.log(student.report.evaluation);
+  var HTML = Object.keys(student.report.evaluation).reduce((prev = 0, curr) => {
+    if (["SMH", "VHM", "IMI", "FEA", "CWOC"].includes(curr)) {
+      return prev + student.report.evaluation[curr];
+    } else {
+      return prev;
+    }
+  }, 0);
+  //   console.log(HTML);
+  var CSS = Object.keys(student.report.evaluation).reduce((prev = 0, curr) => {
+    if (["LP", "TCS", "SVC", "Resp", "COBP"].includes(curr)) {
+      return prev + student.report.evaluation[curr];
+    } else {
+      return prev;
+    }
+  }, 0);
+  var RESPONSIVE = Object.keys(student.report.evaluation).reduce(
+    (prev = 0, curr) => {
+      if (["MFA", "DC"].includes(curr)) {
+        return prev + student.report.evaluation[curr];
+      } else {
+        return prev;
+      }
+    },
+    0
+  );
+
+  var OPTIMIZATION = Object.keys(student.report.evaluation).reduce(
+    (prev = 0, curr) => {
+      if (["AFD", "IEU"].includes(curr)) {
+        return prev + student.report.evaluation[curr];
+      } else {
+        return prev;
+      }
+    },
+    0
+  );
+  var TESTING = Object.keys(student.report.evaluation).reduce(
+    (prev = 0, curr) => {
+      if (["CBC", "BFI"].includes(curr)) {
+        return prev + student.report.evaluation[curr];
+      } else {
+        return prev;
+      }
+    },
+    0
+  );
+  console.log([
+    { title: "HTML", value: HTML },
+    { title: "CSS", value: CSS },
+    { title: "RESPONSIVE", value: RESPONSIVE },
+    { title: "OPTIMIZATION", value: OPTIMIZATION },
+    { title: "TESTING", value: TESTING },
+    { title: "TOTAL", value: student.report.total },
+  ]);
+  //   var VISUALDESIGN = student.report.evaluation;
+  //   var TESTING = student.report.evaluation;
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -249,15 +323,14 @@ async function sendReport(newbody) {
     .replace("johndoe@example.com", to)
     .replace("Vishal Sharma", student.mentor)
     // Update scores
-    .replace(">15<", `>${scores.htmlStructure}<`)
-    .replace(">10<", `>${scores.cssDesign}<`)
-    .replace(">5<", `>${scores.responsiveness}<`)
-    .replace(">9<", `>${scores.optimization}<`)
-    .replace(">5<", `>${scores.visualDesign}<`)
-    .replace(">1<", `>${scores.testing}<`)
-    .replace(">45<", `>${totalScore}<`)
+    .replace("{HTMLSCORE}", `>${HTML}<`)
+    .replace("{CSSSCORE}", `>${CSS}<`)
+    .replace("{Responsiveness&MobileOptimizationLSCORE}", `>${RESPONSIVE}<`)
+    .replace("{Visual&FunctionalDesignSCORE}", `>${OPTIMIZATION}<`)
+    .replace("{Testing&DebuggingSCORE}", `>${TESTING}<`)
+    .replace("{TOTALSCORE}", `>${totalScore}<`)
     // Update feedback
-    .replace(/Lorem ipsum dolor.*?<\/p>/s, `${feedback}</p>`);
+    .replace(/Lorem ipsum dolor.*?<\/p>/s, `${student.feedback}</p>`);
   // Email message options
   const mailOptions = {
     from: "Your S&W capstone project evalutation report <kradityanormal5@gmail.com>", // Sender address
