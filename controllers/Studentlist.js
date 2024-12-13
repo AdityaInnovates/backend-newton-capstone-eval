@@ -3,7 +3,9 @@ const Studentlists = require("../config/models/AllStudents");
 // const Studentlists = require('../models/AllStudents');
 const fetchStudentlist = async (req, res) => {
   try {
-    const Studentlist = await Studentlists.find({});
+    const Studentlist = await Studentlists.find({
+      mentor: { $regex: new RegExp(`^${req.query.mentor}$`, "i") },
+    });
 
     if (Studentlist.length > 0) {
       return res.status(200).json({

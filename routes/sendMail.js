@@ -6,6 +6,8 @@ const secondStepModel = require("../config/models/secondStepModel");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 const User = require("../config/models/userModel");
+const max_tries = 10;
+
 const sendEmail = async (body) => {
   const { to } = body;
   if (!to) {
@@ -39,7 +41,8 @@ const sendEmail = async (body) => {
       };
     }
   }
-  if (data?.totalTries?.tries && data.totalTries.tries > 5) {
+
+  if (data?.totalTries?.tries && data.totalTries.tries > max_tries) {
     if (data.totalTries.date == new Date().toDateString()) {
       return {
         success: false,
@@ -120,27 +123,22 @@ router.post("/forgetPass", async (req, res) => {
   if (!dbres) {
     return res.send({ status: false, msg: "User not found" });
   }
-  // Add 10 minute expiration to JWT
   const token = jwt.sign({ _id: dbres._id }, process.env.SECRET_KEY, {
     expiresIn: "10m",
   });
 
   return res.send(
-    await sendForgetPassMail(
-      {
-        to: body.to,
-        host:
-          process.env.forgetPasswordHostedLink + "?token=" + token ||
-          "https://localhost:6969/?token=" + token,
-      } // Pass token to email function
-    )
+    await sendForgetPassMail({
+      to: body.to,
+      host:
+        process.env.forgetPasswordHostedLink + "?token=" + token ||
+        "https://localhost:6969/?token=" + token,
+    })
   );
 });
 async function sendForgetPassMail(newbody) {
   var { to, host } = newbody;
   var email = to;
-  var otp = newbody?.otp || Math.floor(1000 + Math.random() * 9000);
-  await secondStepModel.findOneAndUpdate({ email }, { otp });
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -218,6 +216,51 @@ async function sendOTPPassMail(newbody) {
     </div>
   </div>
 </div>`,
+  };
+
+  try {
+    // Send email
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.log("Error sending email:", error);
+    return false;
+  }
+}
+async function sendReport(newbody) {
+  var { to, email,student } = newbody;
+  var 
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "kradityanormal5@gmail.com", // Your Gmail email address
+      pass: process.env.emailpass, // Your Gmail password or App Password
+    },
+  });
+  htmlTemplate = htmlTemplate
+  .replace('John Doe', studentName)
+  .replace('johndoe@example.com', to)
+  .replace('Vishal Sharma', mentorName)
+  // Update scores
+  .replace('>15<', `>${scores.htmlStructure}<`)
+  .replace('>10<', `>${scores.cssDesign}<`)
+  .replace('>5<', `>${scores.responsiveness}<`)
+  .replace('>9<', `>${scores.optimization}<`)
+  .replace('>5<', `>${scores.visualDesign}<`)
+  .replace('>1<', `>${scores.testing}<`)
+  .replace('>45<', `>${totalScore}<`)
+  // Update feedback
+  .replace(
+    /Lorem ipsum dolor.*?<\/p>/s,
+    `${feedback}</p>`
+  );
+  // Email message options
+  const mailOptions = {
+    from: "Your S&W capstone project evalutation report <kradityanormal5@gmail.com>", // Sender address
+    to,
+    subject: "Your S&W capstone project evalutation report",
+    text: `${otp}`,
+    html: ``,
   };
 
   try {

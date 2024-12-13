@@ -10,6 +10,7 @@
   - [Email Services](#email-services)
   - [Student Management](#student-management)
   - [File Upload](#file-upload)
+  - [Query Management](#query-management)
 - [Installation](#installation)
 - [Contact](#contact)
 - [Acknowledgments](#acknowledgments)
@@ -200,6 +201,67 @@ POST /UploadFile/upload
 
 - Key: `video`
 - Value: File
+
+### Query Management
+
+#### Get Query by ID
+
+```http
+GET /queries/:id
+```
+
+**Response (Success):**
+
+```json
+{
+  "status": true,
+  "msg": {
+    "query": "string",
+    "feedback": "string"
+  }
+}
+```
+
+#### Submit New Query
+
+```http
+POST /queries
+```
+
+**Request Body:**
+
+```json
+{
+  "query": "string"
+}
+```
+
+**Response (Success):**
+
+```text
+Query submitted successfully
+```
+
+#### Update Query Feedback
+
+```http
+PUT /queries
+```
+
+**Request Body:**
+
+```json
+{
+  "id": "string",
+  "feedback": "string"
+}
+```
+
+**Response (Success):**
+
+```text
+Query updated successfully
+```
 
 ## Installation
 

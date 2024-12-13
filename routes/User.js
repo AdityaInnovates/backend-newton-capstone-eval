@@ -51,9 +51,9 @@ router.post("/register-otp", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   try {
-    const { usernameOrEmail, password } = req.body;
+    const { email, password } = req.body;
     const user = await User.findOne({
-      email: { $regex: new RegExp(`^${usernameOrEmail}$`, "i") },
+      email: { $regex: new RegExp(`^${email}$`, "i") },
     });
 
     if (!user) {

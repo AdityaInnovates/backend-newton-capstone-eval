@@ -1,49 +1,52 @@
 module.exports = {
-  getQuery: (req, res) => {
+  getQuery: async (req, res) => {
     const Query = require("../config/models/studentFeedback");
-    Query.findById(req.params.id, (err, query) => {
-      if (err) {
-        return res.status(500).send("Error finding Query");
-      }
+    try {
+      const query = req.query?.id
+        ? await Query.findOne({ _id: req.query.id })
+        : await Query.find({});
       if (!query) {
-        return res.status(404).send("Query not found");
+        return res.status(500).send({ status: true, msg: [] });
       }
-      res.status(200).send(query);
-    });
+      return res.status(200).send({ status: true, msg: query });
+    } catch (err) {
+      return res.status(500).send("Error getting Query");
+    }
   },
-  postQuery: (req, res) => {
+
+  postQuery: async (req, res) => {
     const { query } = req.body;
     if (!query) {
       return res.status(400).send("Query is required");
     }
     const Query = require("../config/models/studentFeedback");
-    const newQuery = new Query({ query });
-    newQuery.save((err, query) => {
-      if (err) {
-        return res.status(500).send("Error posting Query");
-      }
+    try {
+      const newQuery = new Query({ query });
+      await newQuery.save();
       res.status(200).send("Query submitted successfully");
-    });
+    } catch (err) {
+      return res.status(500).send("Error posting Query");
+    }
   },
-  putQuery: (req, res) => {
-    const { feedback } = req.body;
-    if (!query) {
-      return res.status(400).send("Query is required");
+
+  putQuery: async (req, res) => {
+    const { feedback, id } = req.body;
+    if (!feedback) {
+      return res.status(400).send("feedback is required");
     }
     const Query = require("../config/models/studentFeedback");
-    Query.findByIdAndUpdate(
-      req.params.id,
-      { feedback },
-      { new: true },
-      (err, updatedQuery) => {
-        if (err) {
-          return res.status(500).send("Error updating Query");
-        }
-        if (!updatedQuery) {
-          return res.status(404).send("Query not found");
-        }
-        res.status(200).send("Query updated successfully");
+    try {
+      const updatedQuery = await Query.findByIdAndUpdate(
+        id,
+        { feedback },
+        { new: true }
+      );
+      if (!updatedQuery) {
+        return res.status(404).send("Query not found");
       }
-    );
+      res.status(200).send("Query updated successfully");
+    } catch (err) {
+      return res.status(500).send("Error updating Query");
+    }
   },
 };
