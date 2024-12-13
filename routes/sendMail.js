@@ -144,6 +144,7 @@ router.post("/forgetPass", async (req, res) => {
     })
   );
 });
+router.post("/sendQuery", async (req, res) => {});
 router.post("/sendReport", async (req, res) => {
   var body = req.body;
   if (!body.to) {
@@ -336,8 +337,8 @@ async function sendReport(newbody) {
     from: "Your S&W capstone project evalutation report <kradityanormal5@gmail.com>", // Sender address
     to,
     subject: "Your S&W capstone project evalutation report",
-    text: `${otp}`,
-    html: ``,
+    text: `Your Evaluation Report`,
+    html: htmlTemplate,
   };
 
   try {

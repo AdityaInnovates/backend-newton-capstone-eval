@@ -2,7 +2,9 @@ module.exports = {
   getQuery: async (req, res) => {
     const Query = require("../config/models/studentFeedback");
     try {
-      const query = req.query?.id
+      const query = req.query?.mentor
+        ? await Query.findOne({ mentor: req.query.mentor })
+        : req.query?.id
         ? await Query.findOne({ _id: req.query.id })
         : await Query.find({});
       if (!query) {
