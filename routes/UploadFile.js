@@ -3,12 +3,23 @@ var router = express.Router();
 const fs = require("fs");
 const { google } = require("googleapis");
 const multer = require("multer");
-const KEY_FILE_PATH = "./newton-capstone-16651134b8d1.json";
 const SCOPES = ["https://www.googleapis.com/auth/drive.file"];
 
-// Configure Google Auth
+// Configure Google Auth using environment variables
 const auth = new google.auth.GoogleAuth({
-  keyFile: KEY_FILE_PATH,
+  credentials: {
+    type: process.env.GOOGLE_TYPE,
+    project_id: process.env.GOOGLE_PROJECT_ID,
+    private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID,
+    private_key: process.env.GOOGLE_PRIVATE_KEY,
+    client_email: process.env.GOOGLE_CLIENT_EMAIL,
+    client_id: process.env.GOOGLE_CLIENT_ID,
+    auth_uri: process.env.GOOGLE_AUTH_URI,
+    token_uri: process.env.GOOGLE_TOKEN_URI,
+    auth_provider_x509_cert_url: process.env.GOOGLE_AUTH_PROVIDER_X509_CERT_URL,
+    client_x509_cert_url: process.env.GOOGLE_CLIENT_X509_CERT_URL,
+    universe_domain: process.env.GOOGLE_UNIVERSE_DOMAIN,
+  },
   scopes: SCOPES,
 });
 
@@ -19,7 +30,7 @@ const upload = multer({ dest: "uploads/" });
 async function uploadFileToDrive(filePath, fileName) {
   try {
     const fileMetadata = {
-      name: fileName, // Desired name in Google Drive
+      name: fileName,
     };
 
     const media = {
@@ -35,12 +46,11 @@ async function uploadFileToDrive(filePath, fileName) {
 
     const fileId = response.data.id;
 
-    // Set the file's permissions to allow sharing (optional: adjust role and type)
     await drive.permissions.create({
       fileId: fileId,
       requestBody: {
-        role: "reader", // 'reader' for view-only, 'writer' for edit permissions
-        type: "anyone", // 'anyone' makes it public; use 'user' for specific users
+        role: "reader",
+        type: "anyone",
       },
     });
 
@@ -49,20 +59,12 @@ async function uploadFileToDrive(filePath, fileName) {
       fields: "webViewLink, webContentLink",
     });
     return fileInfo.data.webContentLink;
-    return {
-      webViewLink: fileInfo.data.webViewLink, // Link to view in the browser
-      webContentLink: fileInfo.data.webContentLink, // Link to download/stream the file
-    };
-
-    // Get the sharable link
-    const fileLink = `https://drive.google.com/file/d/${fileId}/view`;
-
-    return fileLink;
   } catch (error) {
     console.error("Error uploading to Google Drive:", error.message);
     throw error;
   }
 }
+
 router.post("/upload", upload.single("video"), async (req, res) => {
   try {
     if (!req.file) {
@@ -91,4 +93,5 @@ router.post("/upload", upload.single("video"), async (req, res) => {
     });
   }
 });
+
 module.exports = router;

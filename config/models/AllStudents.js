@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema(
     },
     query: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
     },
     video: {
@@ -39,8 +39,9 @@ const userSchema = new mongoose.Schema(
     },
     report: {
       type: Object,
-      required: true,
+      required: false,
       trim: true,
+      default: {},
     },
     isActive: {
       type: Boolean,

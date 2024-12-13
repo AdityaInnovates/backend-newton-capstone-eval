@@ -20,20 +20,32 @@ module.exports = {
   },
   postReport: async (req, res) => {
     // const { email } = req.params;
-    var user = await userModel.findById(req.userId);
-    const { responseSheet } = req.body;
-    if (!responseSheet) {
-      return res
-        .status(400)
-        .send({ status: false, message: "Inputs are required" });
-    }
-    var tosave = new User({ ...user, mentor: user.mentorName });
     try {
+      var user = await userModel.findById(req.userId);
+      const { responseSheet } = req.body;
+      if (!responseSheet) {
+        return res
+          .status(400)
+          .send({ status: false, message: "Inputs are required" });
+      }
+      var allfiels = {
+        // ...user,
+        name: user.name,
+        email: user.email,
+        mentor: user.mentorName,
+        githubRepo: responseSheet.githubUrl,
+        hostedLink: responseSheet.hostedLink,
+        video: responseSheet?.videoFile,
+        query: responseSheet.query,
+        // ...responseSheet,
+      };
+      var tosave = new User(allfiels);
       await tosave.save();
       return res
         .status(200)
         .send({ status: false, message: "Report submitted successfully" });
     } catch (error) {
+      console.log(error);
       return res
         .status(500)
         .json({ status: false, message: "Error posting report" });
