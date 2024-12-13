@@ -1,3 +1,33 @@
+const User = require("../config/models/userModel");
+
+async function sendFeedbackMail(newbody) {
+  const { to, feedback } = newbody;
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "kradityanormal5@gmail.com", // Your Gmail email address
+      pass: process.env.emailpass, // Your Gmail password or App Password
+    },
+  });
+
+  // Email message options
+  const mailOptions = {
+    from: "Feedback Notification <kradityanormal5@gmail.com>", // Sender address
+    to,
+    subject: "New Feedback Received",
+    text: `You have received new feedback: ${feedback}`,
+    html: `<p>You have received new feedback:</p><p>${feedback}</p>`,
+  };
+
+  try {
+    // Send email
+    await transporter.sendMail(mailOptions);
+    return { success: true, msg: "Feedback email sent!" };
+  } catch (error) {
+    console.log("Error sending feedback email:", error);
+    return { success: false, msg: "Error sending feedback email" };
+  }
+}
 module.exports = {
   getQuery: async (req, res) => {
     const Query = require("../config/models/studentFeedback");
@@ -23,7 +53,13 @@ module.exports = {
     }
     const Query = require("../config/models/studentFeedback");
     try {
-      const newQuery = new Query({ query });
+      var dbres = await User.findById(req.userId);
+      const newQuery = new Query({
+        ...req.body,
+        email: dbres,
+        mentor: dbres.mentorName,
+        name: dbres.name,
+      });
       await newQuery.save();
       res.status(200).send("Query submitted successfully");
     } catch (err) {
@@ -43,9 +79,20 @@ module.exports = {
         { feedback },
         { new: true }
       );
+
       if (!updatedQuery) {
         return res.status(404).send("Query not found");
       }
+
+      // Send feedback email
+      const emailResponse = await sendFeedbackMail({
+        to: updatedQuery.email,
+        feedback,
+      }); // Replace with actual recipient email
+      if (!emailResponse.success) {
+        console.error("Failed to send feedback email:", emailResponse.msg);
+      }
+
       res.status(200).send("Query updated successfully");
     } catch (err) {
       return res.status(500).send("Error updating Query");
