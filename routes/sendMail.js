@@ -156,7 +156,11 @@ router.post("/sendReport", async (req, res) => {
   if (!body.to) {
     return res.send({ status: false, msg: "Please add a recipient." });
   }
-  var dbres = await AllStudents.findOne({ email: body.to });
+  var dbres = await AllStudents.findOneAndUpdate(
+    { email: body.to },
+    { isMailSend: true },
+    { new: true }
+  );
   if (!dbres) {
     return res.send({ status: false, msg: "User not found" });
   }
@@ -261,7 +265,6 @@ async function sendOTPPassMail(newbody) {
 }
 async function sendReport(newbody) {
   var { to, student } = newbody;
-  //   console.log(student.report.evaluation);
   var HTML = Object.keys(student.report.evaluation).reduce((prev = 0, curr) => {
     if (["SMH", "VHM", "IMI", "FEA", "CWOC"].includes(curr)) {
       return prev + student.report.evaluation[curr];
@@ -316,6 +319,7 @@ async function sendReport(newbody) {
   //   { title: "TESTING", value: TESTING },
   //   { title: "TOTAL", value: student.report.total },
   // ]);
+  // return;
   //   var VISUALDESIGN = student.report.evaluation;
   //   var TESTING = student.report.evaluation;
   const transporter = nodemailer.createTransport({
@@ -325,6 +329,7 @@ async function sendReport(newbody) {
       pass: process.env.emailpass, // Your Gmail password or App Password
     },
   });
+
   htmlTemplate = htmlTemplate
     .replace("{StudentName}", student.name)
     .replace("johndoe@example.com", to)
@@ -337,8 +342,9 @@ async function sendReport(newbody) {
     .replace("{Testing&DebuggingSCORE}", `${TESTING}`)
     .replace("{TOTALSCORE}", `${student.report?.total}`)
     // Update feedback
-    .replace("{FeedbackInputOfStudent}", `${student.feedback}</p>`);
+    .replace("{FeedbackInputOfStudent}", `${student.report.feedback}`);
   // Email message options
+  // console.log(htmlTemplate);
   const mailOptions = {
     from: "Your S&W capstone project evalutation report <kradityanormal5@gmail.com>", // Sender address
     to,

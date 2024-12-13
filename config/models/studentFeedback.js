@@ -28,6 +28,11 @@ const studentSchema = new mongoose.Schema({
     required: false,
     default: "",
   },
+  isMailSend: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
 });
 
 const Feedback = mongoose.model("Allfeedbacks", studentSchema);
