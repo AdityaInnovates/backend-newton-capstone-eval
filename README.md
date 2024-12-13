@@ -11,6 +11,7 @@
   - [Student Management](#student-management)
   - [File Upload](#file-upload)
   - [Query Management](#query-management)
+  - [Counts and Statistics](#counts-and-statistics)
 - [Installation](#installation)
 - [Contact](#contact)
 - [Acknowledgments](#acknowledgments)
@@ -261,6 +262,85 @@ PUT /queries
 
 ```text
 Query updated successfully
+```
+
+### Counts and Statistics
+
+#### Get Top Performers
+
+```http
+GET /Counts/TopPerformers
+```
+
+**Response (Success):**
+
+```json
+{
+  "status": true,
+  "count": 10,
+  "topPerformers": [
+    {
+      "name": "string",
+      "total": "number",
+      "email": "string"
+    }
+  ]
+}
+```
+
+**Response (Error):**
+
+```json
+{
+  "status": false,
+  "message": "Error fetching top performers",
+  "error": "error message"
+}
+```
+
+#### Get Total Queries Count
+
+```http
+GET /Counts/queries
+```
+
+**Response:**
+
+```json
+{
+  "status": true,
+  "count": "number"
+}
+```
+
+#### Get Solved Queries Count
+
+```http
+GET /Counts/queriesSolved
+```
+
+**Response:**
+
+```json
+{
+  "status": true,
+  "count": "number"
+}
+```
+
+#### Get Total Submissions Count
+
+```http
+GET /Counts/SubmisstionCount
+```
+
+**Response:**
+
+```json
+{
+  "status": true,
+  "count": "number"
+}
 ```
 
 ## Installation
