@@ -58,7 +58,9 @@ module.exports = {
     try {
       var dbres = await User.findById(req.userId);
       const newQuery = new Query({
-        ...req.body,
+        // ...query,
+        file: query.file,
+        query: query.query,
         email: dbres,
         mentor: dbres.mentorName,
         name: dbres.name,
@@ -66,6 +68,7 @@ module.exports = {
       await newQuery.save();
       res.status(200).send("Query submitted successfully");
     } catch (err) {
+      console.log(err);
       return res.status(500).send("Error posting Query");
     }
   },
