@@ -4,7 +4,7 @@ const User = require("../config/models/AllStudents");
 var router = express.Router();
 router.get("/TopPerformers", async (req, res) => {
   try {
-    const dbres = await User.find({}).sort({ "report.total": -1 }).limit(10);
+    const dbres = await User.find({}).sort({ "report.total": -1 }).limit(3);
 
     const topPerformers = dbres.map((student) => ({
       name: student.name,
