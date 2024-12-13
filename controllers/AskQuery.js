@@ -61,7 +61,7 @@ module.exports = {
         // ...query,
         file: query.file,
         query: query.query,
-        email: dbres,
+        email: dbres.email,
         mentor: dbres.mentorName,
         name: dbres.name,
       });
