@@ -1,4 +1,5 @@
 const User = require("../config/models/userModel");
+var nodemailer = require("nodemailer");
 
 async function sendFeedbackMail(newbody) {
   const { to, feedback } = newbody;
@@ -33,7 +34,7 @@ module.exports = {
     const Query = require("../config/models/studentFeedback");
     try {
       const query = req.query?.mentor
-        ? await Query.findOne({
+        ? await Query.find({
             mentor: { $regex: new RegExp(`^${req.query.mentor}$`, "i") },
           })
         : req.query?.id
@@ -97,6 +98,7 @@ module.exports = {
 
       res.status(200).send("Query updated successfully");
     } catch (err) {
+      console.log(err);
       return res.status(500).send("Error updating Query");
     }
   },
