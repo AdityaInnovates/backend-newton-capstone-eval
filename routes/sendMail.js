@@ -161,6 +161,7 @@ router.post("/sendReport", async (req, res) => {
   if (!dbres) {
     return res.send({ status: false, msg: "User not found" });
   }
+  // console.log(dbres);
 
   return res.send(
     await sendReport({
