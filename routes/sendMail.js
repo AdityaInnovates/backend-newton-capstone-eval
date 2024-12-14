@@ -265,7 +265,7 @@ async function sendOTPPassMail(newbody) {
 }
 async function sendReport(newbody) {
   var { to, student } = newbody;
-  if (!student?.report || !student?.report?.evaluation) {
+  if (!student?.report?.evaluation) {
     return { status: false, msg: "Not evaluation Detected" };
   }
   var HTML = Object.keys(student.report.evaluation).reduce((prev = 0, curr) => {
