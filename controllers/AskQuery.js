@@ -59,7 +59,7 @@ module.exports = {
       var dbres = await User.findById(req.userId);
       const newQuery = new Query({
         // ...query,
-        file: query.file,
+        file: query?.file || "",
         query: query.query,
         email: dbres.email,
         mentor: dbres.mentorName,
