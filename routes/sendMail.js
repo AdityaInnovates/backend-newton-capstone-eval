@@ -268,7 +268,7 @@ async function sendReport(newbody) {
   if (!student?.report?.evaluation) {
     return { status: false, msg: "Not evaluation Detected" };
   }
-  var HTML = Object.keys(student.report.evaluation).reduce((prev = 0, curr) => {
+  var HTML = Object.keys(student.reort.evaluation).reduce((prev = 0, curr) => {
     if (["SMH", "VHM", "IMI", "FEA", "CWOC"].includes(curr)) {
       return prev + student.report.evaluation[curr];
     } else {
