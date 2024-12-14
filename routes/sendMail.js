@@ -156,11 +156,8 @@ router.post("/sendReport", async (req, res) => {
   if (!body.to) {
     return res.send({ status: false, msg: "Please add a recipient." });
   }
-  var dbres = await AllStudents.findOneAndUpdate(
-    { email: body.to },
-    { isMailSend: true },
-    { new: true }
-  );
+  await AllStudents.findOneAndUpdate({ email: body.to }, { isMailSend: true });
+  var dbres = await AllStudents.findOne({ email: body.to });
   if (!dbres) {
     return res.send({ status: false, msg: "User not found" });
   }
@@ -333,7 +330,7 @@ async function sendReport(newbody) {
     },
   });
 
-  htmlTemplate = htmlTemplate
+  var newhtmlTemplate = htmlTemplate
     .replace("{StudentName}", student.name)
     .replace("johndoe@example.com", to)
     .replace("{MentorName}", student.mentor)
@@ -346,14 +343,13 @@ async function sendReport(newbody) {
     .replace("{TOTALSCORE}", `${student.report?.total}`)
     // Update feedback
     .replace("{FeedbackInputOfStudent}", `${student.report.feedback}`);
-  // Email message options
-  // console.log(htmlTemplate);
+
   const mailOptions = {
     from: "Your S&W capstone project evalutation report <kradityanormal5@gmail.com>", // Sender address
     to,
     subject: "Your S&W capstone project evalutation report",
     text: `Your Evaluation Report`,
-    html: htmlTemplate,
+    html: newhtmlTemplate,
   };
 
   try {
