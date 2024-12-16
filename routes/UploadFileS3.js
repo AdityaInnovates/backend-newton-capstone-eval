@@ -9,6 +9,7 @@ const {
 } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const Busboy = require("busboy");
+const { Upload } = require("@aws-sdk/lib-storage");
 
 router.post("/uploadS3", async (req, res) => {
   const s3Client = new S3Client({
@@ -42,7 +43,6 @@ router.post("/uploadS3", async (req, res) => {
 
     try {
       // Use the Upload utility for streaming uploads
-      const { Upload } = require("@aws-sdk/lib-storage");
       const upload = new Upload({
         client: s3Client,
         params: {
@@ -51,11 +51,14 @@ router.post("/uploadS3", async (req, res) => {
           Body: file, // Stream the file directly to S3
           ContentType: mimetype,
         },
+        // Optional: Adjust concurrency and part size for better performance
+        queueSize: 4, // Number of concurrent uploads
+        partSize: 5 * 1024 * 1024, // Size of each part (5 MB)
       });
 
-      // upload.on("httpUploadProgress", (progress) => {
-      //   console.log(`Uploaded: ${progress.loaded} of ${progress.total} bytes`);
-      // });
+      upload.on("httpUploadProgress", (progress) => {
+        console.log(`Uploaded: ${progress.loaded} of ${progress.total} bytes`);
+      });
 
       await upload.done();
 
