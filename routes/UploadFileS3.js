@@ -8,88 +8,79 @@ const {
   GetObjectCommand,
 } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-const upload = multer({
-  dest: "uploads/",
-  limits: { fileSize: 500 * 1024 * 1024 },
-});
+const Busboy = require("busboy");
 
-// Custom error handler for multer
-const multerErrorHandler = (err, req, res, next) => {
-  if (err instanceof multer.MulterError) {
-    return res.status(400).json({
-      status: false,
-      message: "File too large. Maximum size allowed is 500 MB.",
-    });
-  }
-  next(err);
-};
+router.post("/uploadS3", async (req, res) => {
+  const s3Client = new S3Client({
+    endpoint: process.env.OLAKRUTRIM_BASE_URL,
+    region: process.env.OLAKRUTRIM_REGION,
+    credentials: {
+      accessKeyId: process.env.OLAKRUTRIM_ACCESS_KEY,
+      secretAccessKey: process.env.OLAKRUTRIM_SECRET_KEY,
+    },
+  });
 
-router.post(
-  "/uploadS3",
-  upload.single("video"),
-  multerErrorHandler,
-  async (req, res) => {
+  const bucketName = process.env.OLAKRUTRIM_BUCKET_NAME;
+
+  const busboy = Busboy({
+    headers: req.headers,
+    limits: { fileSize: 500 * 1024 * 1024 }, // Limit file size to 500 MB
+  });
+
+  // Custom error handling for file size limit
+  busboy.on("limit", () => {
+    console.error("File size limit exceeded");
+    res.status(400).json({ message: "File size exceeds the 500 MB limit" });
+    req.unpipe(busboy); // Stop piping the request to Busboy
+    busboy.end(); // End the Busboy stream
+  });
+
+  busboy.on("file", async (fieldname, file, filename, encoding, mimetype) => {
+    console.log(`Uploading file from field: ${fieldname}`);
+
+    const s3Key = `${Date.now()}-${filename}`; // Generate unique file name
+
     try {
-      if (!req.file) {
-        return res
-          .status(400)
-          .json({ status: false, message: "No file uploaded" });
-      }
-      const s3Client = new S3Client({
-        endpoint: process.env.OLAKRUTRIM_BASE_URL,
-        region: process.env.OLAKRUTRIM_REGION,
-        s3ForcePathStyle: true,
-        credentials: {
-          accessKeyId: process.env.OLAKRUTRIM_ACCESS_KEY,
-          secretAccessKey: process.env.OLAKRUTRIM_SECRET_KEY,
+      // Use the Upload utility for streaming uploads
+      const { Upload } = require("@aws-sdk/lib-storage");
+      const upload = new Upload({
+        client: s3Client,
+        params: {
+          Bucket: bucketName,
+          Key: s3Key,
+          Body: file, // Stream the file directly to S3
+          ContentType: mimetype,
         },
-        forcePathStyle: true,
       });
 
-      const command = new PutObjectCommand({
-        Bucket: process.env.OLAKRUTRIM_BUCKET_NAME,
-        Key: req.file.originalname + Math.floor(Math.random() * 9999),
-        Body: fs.createReadStream(req.file.path),
-      });
+      // upload.on("httpUploadProgress", (progress) => {
+      //   console.log(`Uploaded: ${progress.loaded} of ${progress.total} bytes`);
+      // });
 
-      const response = await s3Client.send(command);
-      // console.log(response);
-
-      fs.unlink(req.file.path, (err) => {
-        if (err) {
-          console.error("Failed to delete local file:", err);
-        }
-      });
+      await upload.done();
 
       const signedUrl = await getSignedUrl(
         s3Client,
         new GetObjectCommand({
-          Bucket: process.env.OLAKRUTRIM_BUCKET_NAME,
-          Key: req.file.originalname,
+          Bucket: bucketName,
+          Key: s3Key,
         })
-        // { expiresIn: 3600 }
       );
 
       res.json({
         message: "File uploaded successfully",
-        data: response,
         videoLink: signedUrl,
       });
-    } catch (error) {
-      if (
-        error instanceof multer.MulterError &&
-        error.code === "LIMIT_FILE_SIZE"
-      ) {
-        return res.status(400).json({
-          message: "File too large. Maximum size allowed is 500MB.",
-        });
-      }
-      res.status(500).json({
-        message: "Upload failed",
-        error: error.message,
-      });
+      console.log("Upload successful");
+    } catch (err) {
+      console.error("Error uploading to S3:", err);
+      return res
+        .status(500)
+        .json({ message: "Upload failed", error: err.message });
     }
-  }
-);
+  });
+
+  req.pipe(busboy); // Pipe the incoming request to Busboy
+});
 
 module.exports = router;
