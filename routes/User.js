@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../config/models/userModel");
+const Allstudents = require("../config/models/AllStudents");
+
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const verifyToken = require("../middlewares/authMiddleware");
@@ -86,14 +88,17 @@ router.post("/login", async (req, res) => {
 router.get("/me", verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.userId).select("-password");
+    const Projects = await Allstudents.find({ email: user.email });
     if (!user) {
       return res.status(404).json({ status: false, message: "User not found" });
     }
+    // var userr = user;
     res.status(200).json({
       status: true,
-      user,
+      user: { ...user._doc, Projects },
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ status: false, message: "Server error" });
   }
 });

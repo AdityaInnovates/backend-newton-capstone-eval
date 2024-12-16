@@ -27,6 +27,11 @@ const userSchema = new mongoose.Schema(
       required: false,
       trim: true,
     },
+    figmaLink: {
+      type: String,
+      required: false,
+      trim: true,
+    },
     query: {
       type: String,
       required: false,

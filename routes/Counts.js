@@ -10,6 +10,7 @@ router.get("/TopPerformers", async (req, res) => {
       name: student.name,
       total: student.report?.total || 0,
       email: student.email,
+      githubRepo: student.githubRepo,
     }));
 
     return res.send({

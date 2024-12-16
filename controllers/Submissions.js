@@ -37,17 +37,18 @@ module.exports = {
         hostedLink: responseSheet.hostedLink,
         video: responseSheet?.videoFile,
         query: responseSheet.query,
+        figmaLink: responseSheet.figmaLink,
         // ...responseSheet,
       };
       var tosave = new User(allfiels);
       await tosave.save();
       return res
         .status(200)
-        .send({ status: false, message: "Report submitted successfully" });
+        .send({ status: true, message: "Project submitted successfully" });
     } catch (error) {
       console.log(error);
       return res
-        .status(500)
+        .status(200)
         .json({ status: false, message: "Error posting report" });
     }
   },
