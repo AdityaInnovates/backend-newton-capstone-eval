@@ -48,7 +48,7 @@ router.post(
 
       const command = new PutObjectCommand({
         Bucket: process.env.OLAKRUTRIM_BUCKET_NAME,
-        Key: req.file.originalname,
+        Key: req.file.originalname + Math.floor(Math.random() * 9999),
         Body: fs.createReadStream(req.file.path),
       });
 
